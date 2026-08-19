@@ -55,8 +55,18 @@ class RAGService:
 
         # Generate Response AIMessage
         ai_message = rag_chain.invoke(customer_ticket)
-        response_text = ai_message.content if hasattr(ai_message, "content") else str(ai_message)
 
+        content = ai_message.content if hasattr(ai_message, "content") else ai_message
+
+        if isinstance(content, str):
+          response_text = content
+        elif isinstance(content, list):
+            response_text = "".join(
+               item.get("text", "") if isinstance(item, dict) else str(item)
+               for item in content
+            )
+        else:
+          response_text = str(content)
         # Extract Token Usage Telemetry
         usage = getattr(ai_message, "usage_metadata", None) or {}
         prompt_tokens = usage.get("input_tokens", 0)
